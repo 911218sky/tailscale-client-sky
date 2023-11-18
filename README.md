@@ -1,6 +1,6 @@
 # Tailscale Tool User Guide
 
-[English Version]((https://github.com/911218sky/tailscale-cline/blob/main/README.md)) | [中文版本](https://github.com/911218sky/tailscale-cline/blob/main/CN-README.md)
+[English Version](https://github.com/911218sky/tailscale-cline/blob/main/README.md) | [中文版本](https://github.com/911218sky/tailscale-cline/blob/main/CN-README.md)
 
 ## Introduction
 This tool is designed to quickly set up Tailscale and easily manage your network. Tailscale is a simple, secure, and user-friendly VPN solution that allows you to establish secure network connections between different devices.
