@@ -1,6 +1,6 @@
 # Tailscale 工具使用說明
 
-[English Version]((https://github.com/911218sky/tailscale-cline/blob/main/CN-README.md)) | [中文版本](https://github.com/911218sky/tailscale-cline/blob/main/README.md)
+[English Version](https://github.com/911218sky/tailscale-cline/blob/main/CN-README.md) | [中文版本](https://github.com/911218sky/tailscale-cline/blob/main/README.md)
 
 ## 簡介
 這個工具是一個用於快速設置 Tailscale 並輕鬆管理您的網絡的工具。Tailscale 是一個簡單、安全且易於使用的 VPN 解決方案，可幫助您在不同設備之間建立安全的網絡連接。
