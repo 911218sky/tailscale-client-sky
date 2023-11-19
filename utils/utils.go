@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"strings"
 	"tailscale/download"
-	"tailscale/utilsTermbox"
+	"tailscale/utils/utilsTermbox"
 
 	"github.com/nsf/termbox-go"
 )

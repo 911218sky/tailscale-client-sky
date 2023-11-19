@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"tailscale/utilsTermbox"
+	"tailscale/utils/utilsTermbox"
 )
 
 const tailscaleDownloadURL = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"

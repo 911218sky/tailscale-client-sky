@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"tailscale/utils"
-	"tailscale/utilsTermbox"
+	"tailscale/utils/utilsTermbox"
 
 	"github.com/nsf/termbox-go"
 )
