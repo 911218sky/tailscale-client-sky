@@ -20,7 +20,7 @@ type Option struct {
 
 func DrawString(x, y int, str string) {
 	for i, ch := range str {
-		termbox.SetCell(x+i, y, ch, termbox.ColorDefault, termbox.ColorDefault)
+		termbox.SetCell(x+i+2, y, ch, termbox.ColorDefault, termbox.ColorDefault)
 	}
 	termbox.Flush()
 }
