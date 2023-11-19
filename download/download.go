@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-
-	"github.com/cheggaaa/pb/v3"
+	"tailscale/utilsTermbox"
 )
 
 const tailscaleDownloadURL = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 
 func DownloadTailscale(fileName string) error {
+	utilsTermbox.PrintMessage("Downloading tailscale ...")
+
 	resp, err := http.Get(tailscaleDownloadURL)
 	if err != nil {
 		return err
@@ -32,14 +33,14 @@ func DownloadTailscale(fileName string) error {
 	}
 	defer file.Close()
 
-	// 创建进度条
-	bar := pb.Start64(contentLength)
-	bar.SetTemplate(pb.Default)
-	bar.SetMaxWidth(80)
+	// 设置进度条的初始状态
+	percent := 0
+	total := int64(0)
+	utilsTermbox.ProgressBarInit()
+	utilsTermbox.PrintProgressBar(percent)
 
 	// 复制文件内容到文件并手动更新进度条
 	buffer := make([]byte, 1024)
-	total := int64(0)
 
 	for {
 		n, err := resp.Body.Read(buffer)
@@ -49,32 +50,38 @@ func DownloadTailscale(fileName string) error {
 		if n == 0 {
 			break
 		}
+
 		_, err = file.Write(buffer[:n])
 		if err != nil {
 			return err
 		}
+
+		// 更新进度条
 		total += int64(n)
-		bar.SetCurrent(total)
+		percent = int(float64(total) / float64(contentLength) * 100)
+		utilsTermbox.PrintProgressBar(percent)
+
+		if err == io.EOF {
+			break
+		}
 	}
 
-	bar.Finish()
+	utilsTermbox.PrintMessage("Download completed")
 	return nil
 }
 
 func Install(downloadFileName string) error {
-	// 创建安装命令
 	installCmd := exec.Command(downloadFileName, "--install")
 	installCmd.Stdout = os.Stdout
 	installCmd.Stderr = os.Stderr
 
-	fmt.Println("Installing Tailscale...")
+	utilsTermbox.PrintMessage("Installing Tailscale...")
 
-	// 执行安装命令并返回可能的错误
 	if err := installCmd.Run(); err != nil {
-		fmt.Printf("Error installing Tailscale: %v\n", err)
+		utilsTermbox.PrintMessage(fmt.Sprintf("Error installing Tailscale: %v\n", err))
 		return err
 	}
 
-	fmt.Println("Tailscale installed successfully.")
+	utilsTermbox.PrintMessage("Tailscale installed successfully.")
 	return nil
 }

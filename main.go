@@ -42,5 +42,5 @@ func main() {
 // https://stackoverflow.com/questions/25602600/how-do-you-set-the-application-icon-in-golang
 // icon
 // go install github.com/tc-hib/go-winres@latest
-// go-winres simply --icon youricon.png
+// go-winres simply --icon sky-tailscale.png
 // go build

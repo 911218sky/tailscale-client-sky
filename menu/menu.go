@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"tailscale/utils"
+	"tailscale/utilsTermbox"
 
 	"github.com/nsf/termbox-go"
 )
@@ -19,7 +20,9 @@ const (
 )
 
 func RunTermboxUI() {
+
 	defer termbox.Close()
+
 	options := []string{"Connect", "SwitchAccount", "SignOut", "ListInformation", "OpenMstsc", "Quit"}
 	optionToAction := map[int]func(){
 		CONNECT:          Connect,
@@ -32,7 +35,7 @@ func RunTermboxUI() {
 	selectedIndex := 0
 
 	for {
-		utils.ClearMessage(utils.Option{NoFlush: true})
+		utilsTermbox.ClearMessage(utilsTermbox.Option{NoFlush: true})
 		RenderMenu(options, selectedIndex)
 
 		event := termbox.PollEvent()
@@ -44,13 +47,13 @@ func RunTermboxUI() {
 
 		action, found := optionToAction[selectedIndex]
 		if !found {
-			utils.PrintMessage("Unknown option")
+			utilsTermbox.PrintMessage("Unknown option")
 			break
 		}
 
-		utils.ClearMessage()
+		utilsTermbox.ClearMessage()
 		action()
-		utils.ClearMessage()
+		utilsTermbox.ClearMessage()
 	}
 }
 
@@ -59,7 +62,7 @@ func RenderMenu(options []string, selectedIndex int) {
 		if selectedIndex == i {
 			option = ">  " + option
 		}
-		utils.PrintMessage(option, utils.Option{NoFlush: true})
+		utilsTermbox.PrintMessage(option, utilsTermbox.Option{NoFlush: true})
 	}
 	termbox.Flush()
 }
@@ -70,10 +73,14 @@ func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) b
 		case termbox.KeyArrowUp:
 			if *selectedIndex > 0 {
 				*selectedIndex--
+			} else {
+				*selectedIndex = len(options) - 1
 			}
 		case termbox.KeyArrowDown:
 			if *selectedIndex < len(options)-1 {
 				*selectedIndex++
+			} else {
+				*selectedIndex = 0
 			}
 		case termbox.KeyEnter:
 			return true
@@ -94,7 +101,7 @@ func getAccount() string {
 	})
 	tailscaleAccount.AllAccounts = append(tailscaleAccount.AllAccounts, "QUIT")
 	for {
-		utils.ClearMessage(utils.Option{NoFlush: true})
+		utilsTermbox.ClearMessage(utilsTermbox.Option{NoFlush: true})
 		RenderMenu(tailscaleAccount.AllAccounts, selectedIndex)
 		event := termbox.PollEvent()
 		isEnter := handleKeyEvent(event, &selectedIndex, tailscaleAccount.AllAccounts)
@@ -108,8 +115,8 @@ func getAccount() string {
 	}
 
 	if strings.HasPrefix(tailscaleAccount.AllAccounts[selectedIndex], "*") {
-		utils.PrintMessage("It is not possible to select an account that is currently in use!")
-		utils.PrintMessage("Press Enter to continue...")
+		utilsTermbox.PrintMessage("It is not possible to select an account that is currently in use!")
+		utilsTermbox.PrintMessage("Press Enter to continue...")
 		termbox.PollEvent()
 		return ""
 	}
@@ -121,7 +128,7 @@ func Connect() {
 	utils.Login()
 	utils.Status()
 	utils.OpenMstsc()
-	utils.PrintMessage("Press Enter to continue...")
+	utilsTermbox.PrintMessage("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
@@ -133,24 +140,24 @@ func SwitchAccount() {
 	utils.SwitchAccount(account)
 	utils.Status()
 	utils.OpenMstsc()
-	utils.PrintMessage("Press Enter to continue...")
+	utilsTermbox.PrintMessage("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
 func SignOut() {
 	utils.Logout()
-	utils.PrintMessage("Press Enter to continue...")
+	utilsTermbox.PrintMessage("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
 func ListInformation() {
 	utils.MyIp()
 	utils.Status()
-	utils.PrintMessage("Press Enter to continue...")
+	utilsTermbox.PrintMessage("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
 func Quit() {
-	utils.ClearMessage()
+	utilsTermbox.ClearMessage()
 	os.Exit(0)
 }

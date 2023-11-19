@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strings"
 	"tailscale/download"
+	"tailscale/utilsTermbox"
 
 	"github.com/nsf/termbox-go"
 )
@@ -41,10 +42,11 @@ var allowedSubcommands = map[string]bool{
 }
 
 func HasTailscale() bool {
+	utilsTermbox.ClearMessage()
 	cmdObj := exec.Command("cmd", "/C", "where", "tailscale.exe")
 	output, err := cmdObj.CombinedOutput()
 	if err != nil {
-		PrintMessage(fmt.Sprintf("Command execution error: %v\n", err))
+		utilsTermbox.PrintMessage(fmt.Sprintf("Command execution error: %v\n", err))
 		return false
 	}
 	outputStr := string(output)
@@ -60,7 +62,7 @@ func OpenMstsc() {
 	cmd := exec.Command(cmdPath)
 	err := cmd.Start()
 	if err != nil {
-		PrintMessage(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err))
+		utilsTermbox.PrintMessage(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err))
 		return
 	}
 }
@@ -91,12 +93,12 @@ func GetUserInput(prompt string) string {
 	cursorX := len(prompt)
 
 	for {
-		DrawString(0, y, prompt+inputText)
+		utilsTermbox.DrawString(0, utilsTermbox.YTermbox, prompt+inputText)
 		event := termbox.PollEvent()
 		switch event.Type {
 		case termbox.EventKey:
 			if event.Key == termbox.KeyEnter {
-				y++
+				utilsTermbox.YTermbox++
 				return inputText
 			} else if event.Key == termbox.KeyEsc {
 				inputText = ""
@@ -105,7 +107,7 @@ func GetUserInput(prompt string) string {
 				if cursorX > len(prompt) {
 					cursorX--
 					inputText = inputText[:len(inputText)-1]
-					DrawString(cursorX, y, " ")
+					utilsTermbox.DrawString(cursorX, utilsTermbox.YTermbox, " ")
 				}
 			} else if event.Ch != 0 {
 				inputText = inputText[:cursorX-len(prompt)] + string(event.Ch) + inputText[cursorX-len(prompt):]
@@ -116,14 +118,16 @@ func GetUserInput(prompt string) string {
 }
 
 func CheckTailscale() {
-	PrintMessage("Checking for Tailscale...")
+	utilsTermbox.PrintMessage("Checking for Tailscale...")
 	if !HasTailscale() {
 		downloadFileName := "tailscale-setup-latest.exe"
 		download.DownloadTailscale(downloadFileName)
 		download.Install("./" + downloadFileName)
-		PrintMessage("The installation is complete, please run it again.")
-		PrintMessage("Press Enter to continue...")
+		os.Remove("./" + downloadFileName)
+		utilsTermbox.PrintMessage("The installation is complete, please run it again.")
+		utilsTermbox.PrintMessage("Press Enter to continue...")
 		termbox.PollEvent()
+		utilsTermbox.ClearMessage()
 		os.Exit(0)
 	}
 }
@@ -131,28 +135,28 @@ func CheckTailscale() {
 func Status() {
 	output, err := Execution("status")
 	if err != nil {
-		PrintMessage(fmt.Sprintf("Error: %v", err))
+		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
 	} else {
-		PrintMessage(output)
+		utilsTermbox.PrintMessage(output)
 	}
 }
 
 func MyIp() {
-	PrintMessage("My IP : ")
+	utilsTermbox.PrintMessage("My IP : ")
 	ip, err := Execution("ip")
 	if err != nil {
-		PrintMessage(fmt.Sprintf("Error: %v", err))
+		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
 	} else {
-		PrintMessage(ip)
+		utilsTermbox.PrintMessage(ip)
 	}
 }
 
 func SwitchAccount(account string) {
 	output, err := Execution("switch", account)
 	if err != nil {
-		PrintMessage(fmt.Sprintf("Error: %v", err))
+		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
 	} else {
-		PrintMessage(output)
+		utilsTermbox.PrintMessage(output)
 	}
 }
 
@@ -224,15 +228,15 @@ func Login() {
 	for {
 		key, err := GetKey()
 		if err != nil {
-			PrintMessage("Login failed!")
+			utilsTermbox.PrintMessage("Login failed!")
 			continue
 		}
-		PrintMessage("Landed successfully!")
+		utilsTermbox.PrintMessage("Landed successfully!")
 		output, err := Execution("login", "--authkey", key)
 		if err != nil {
-			PrintMessage(fmt.Sprintf("Error: %v", err))
+			utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
 		} else {
-			PrintMessage(output)
+			utilsTermbox.PrintMessage(output)
 			break
 		}
 	}
@@ -241,70 +245,8 @@ func Login() {
 func Logout() {
 	output, err := Execution("logout")
 	if err != nil {
-		PrintMessage(fmt.Sprintf("Error: %v", err))
+		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
 	} else {
-		PrintMessage(output)
-	}
-}
-
-var (
-	x = 2
-	y = 0
-)
-
-type Option struct {
-	NoNewLine bool
-	NoFlush   bool
-}
-
-func DrawString(x, y int, str string) {
-	for i, ch := range str {
-		termbox.SetCell(x+i, y, ch, termbox.ColorDefault, termbox.ColorDefault)
-	}
-	termbox.Flush()
-}
-
-func PrintMessage(message string, options ...Option) {
-	option := Option{}
-	if len(options) > 0 {
-		if options[0].NoFlush {
-			option.NoFlush = true
-		}
-		if options[0].NoNewLine {
-			option.NoNewLine = true
-		}
-	}
-
-	lines := strings.Split(message, "\n")
-	for _, line := range lines {
-		for _, ch := range line {
-			termbox.SetCell(x, y, ch, termbox.ColorDefault, termbox.ColorDefault)
-			x++
-		}
-		y++
-		x = 2
-	}
-
-	if option.NoNewLine {
-		y--
-	}
-
-	if !option.NoFlush {
-		termbox.Flush()
-	}
-}
-
-func ClearMessage(options ...Option) {
-	x = 2
-	y = 0
-	isFlush := true
-	if len(options) > 0 {
-		if options[0].NoFlush {
-			isFlush = false
-		}
-	}
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	if isFlush {
-		termbox.Flush()
+		utilsTermbox.PrintMessage(output)
 	}
 }
