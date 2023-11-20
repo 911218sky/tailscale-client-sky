@@ -19,6 +19,7 @@ func main() {
 
 	utilsTermbox.InIt()
 	utils.CheckTailscale()
+
 	accounts, err := utils.GetAccounts()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)

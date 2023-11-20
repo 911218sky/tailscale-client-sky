@@ -44,7 +44,7 @@ func (td *TermboxDrawer) PrintMessage(message string, options ...MessageOption) 
 	lines := strings.Split(message, "\n")
 	for _, line := range lines {
 		for _, ch := range line {
-			termbox.SetCell(td.xTermbox, td.yTermbox, ch, termbox.ColorDefault, termbox.ColorDefault)
+			termbox.SetCell(td.xTermbox+2, td.yTermbox, ch, termbox.ColorDefault, termbox.ColorDefault)
 			td.xTermbox++
 		}
 		td.yTermbox++
@@ -55,7 +55,7 @@ func (td *TermboxDrawer) PrintMessage(message string, options ...MessageOption) 
 		td.yTermbox--
 	}
 
-	if !option.Flush {
+	if option.Flush {
 		termbox.Flush()
 	}
 }
