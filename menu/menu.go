@@ -11,19 +11,20 @@ import (
 )
 
 const (
-	CONNECT          = iota // 0: 連線
-	SWITCHACCOUNT           // 1: 切換帳戶
-	SIGNOUT                 // 2: 登出
-	LIST_INFORMATION        // 3: 列出資訊
-	OPEN_MSTSC              // 4: 開啟遠端桌面
-	QUIT                    // 5: 退出
+	CONNECT          = iota // 0: Connect
+	SWITCHACCOUNT           // 1: Switch Account
+	SIGNOUT                 // 2: Sign Out
+	LIST_INFORMATION        // 3: List Information
+	OPEN_MSTSC              // 4: Open Remote Desktop
+	QUIT                    // 5: Quit
 )
 
+var cm = utilsTermbox.Td.ClearMessage
+var pm = utilsTermbox.Td.PrintMessage
+
+// RunTermboxUI starts the Termbox user interface.
 func RunTermboxUI() {
-
-	defer termbox.Close()
-
-	options := []string{"Connect", "SwitchAccount", "SignOut", "ListInformation", "OpenMstsc", "Quit"}
+	options := []string{"Connect", "Switch Account", "Sign Out", "List Information", "Open Remote Desktop", "Quit"}
 	optionToAction := map[int]func(){
 		CONNECT:          Connect,
 		SWITCHACCOUNT:    SwitchAccount,
@@ -35,7 +36,7 @@ func RunTermboxUI() {
 	selectedIndex := 0
 
 	for {
-		utilsTermbox.ClearMessage(utilsTermbox.Option{NoFlush: true})
+		cm(utilsTermbox.Option{Flush: false})
 		RenderMenu(options, selectedIndex)
 
 		event := termbox.PollEvent()
@@ -47,26 +48,28 @@ func RunTermboxUI() {
 
 		action, found := optionToAction[selectedIndex]
 		if !found {
-			utilsTermbox.PrintMessage("Unknown option")
+			pm("Unknown option")
 			break
 		}
 
-		utilsTermbox.ClearMessage()
+		cm()
 		action()
-		utilsTermbox.ClearMessage()
+		cm()
 	}
 }
 
+// RenderMenu displays menu items.
 func RenderMenu(options []string, selectedIndex int) {
 	for i, option := range options {
 		if selectedIndex == i {
 			option = ">  " + option
 		}
-		utilsTermbox.PrintMessage(option, utilsTermbox.Option{NoFlush: true})
+		pm(option, utilsTermbox.MessageOption{Flush: false, NewLine: true})
 	}
 	termbox.Flush()
 }
 
+// handleKeyEvent handles keyboard events for selecting menu items.
 func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) bool {
 	if event.Type == termbox.EventKey {
 		switch event.Key {
@@ -91,6 +94,7 @@ func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) b
 	return false
 }
 
+// getAccount retrieves the Tailscale account to switch to.
 func getAccount() string {
 	tailscaleAccount, _ := utils.GetAccounts()
 	selectedIndex := 0
@@ -101,7 +105,7 @@ func getAccount() string {
 	})
 	tailscaleAccount.AllAccounts = append(tailscaleAccount.AllAccounts, "QUIT")
 	for {
-		utilsTermbox.ClearMessage(utilsTermbox.Option{NoFlush: true})
+		cm(utilsTermbox.Option{Flush: false})
 		RenderMenu(tailscaleAccount.AllAccounts, selectedIndex)
 		event := termbox.PollEvent()
 		isEnter := handleKeyEvent(event, &selectedIndex, tailscaleAccount.AllAccounts)
@@ -115,8 +119,8 @@ func getAccount() string {
 	}
 
 	if strings.HasPrefix(tailscaleAccount.AllAccounts[selectedIndex], "*") {
-		utilsTermbox.PrintMessage("It is not possible to select an account that is currently in use!")
-		utilsTermbox.PrintMessage("Press Enter to continue...")
+		pm("It is not possible to select an account that is currently in use!")
+		pm("Press Enter to continue...")
 		termbox.PollEvent()
 		return ""
 	}
@@ -124,14 +128,16 @@ func getAccount() string {
 	return tailscaleAccount.AllAccounts[selectedIndex]
 }
 
+// Connect connects to Tailscale.
 func Connect() {
 	utils.Login()
 	utils.Status()
 	utils.OpenMstsc()
-	utilsTermbox.PrintMessage("Press Enter to continue...")
+	pm("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
+// SwitchAccount switches Tailscale account.
 func SwitchAccount() {
 	account := getAccount()
 	if account == "" {
@@ -140,24 +146,27 @@ func SwitchAccount() {
 	utils.SwitchAccount(account)
 	utils.Status()
 	utils.OpenMstsc()
-	utilsTermbox.PrintMessage("Press Enter to continue...")
+	pm("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
+// SignOut logs out of the Tailscale account.
 func SignOut() {
 	utils.Logout()
-	utilsTermbox.PrintMessage("Press Enter to continue...")
+	pm("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
+// ListInformation displays Tailscale-related information.
 func ListInformation() {
 	utils.MyIp()
 	utils.Status()
-	utilsTermbox.PrintMessage("Press Enter to continue...")
+	pm("Press Enter to continue...")
 	termbox.PollEvent()
 }
 
+// Quit exits the application.
 func Quit() {
-	utilsTermbox.ClearMessage()
+	cm()
 	os.Exit(0)
 }

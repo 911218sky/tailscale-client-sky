@@ -11,8 +11,12 @@ import (
 
 const tailscaleDownloadURL = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 
+var pm = utilsTermbox.Td.PrintMessage
+var cm = utilsTermbox.Td.ClearMessage
+
+// DownloadTailscale downloads the Tailscale installer with the specified fileName.
 func DownloadTailscale(fileName string) error {
-	utilsTermbox.PrintMessage("Downloading tailscale ...")
+	pm("Downloading Tailscale...")
 
 	resp, err := http.Get(tailscaleDownloadURL)
 	if err != nil {
@@ -20,26 +24,26 @@ func DownloadTailscale(fileName string) error {
 	}
 	defer resp.Body.Close()
 
-	// 获取文件大小
+	// Get the file size
 	contentLength := resp.ContentLength
 	if contentLength <= 0 {
 		return fmt.Errorf("Unable to get file size")
 	}
 
-	// 创建文件
+	// Create the file
 	file, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// 设置进度条的初始状态
+	// Set the initial state of the progress bar
 	percent := 0
 	total := int64(0)
-	utilsTermbox.ProgressBarInit()
-	utilsTermbox.PrintProgressBar(percent)
+	printProgressBar := utilsTermbox.Td.ProgressBarAtY()
+	printProgressBar(percent)
 
-	// 复制文件内容到文件并手动更新进度条
+	// Copy file content to the file and manually update the progress bar
 	buffer := make([]byte, 1024)
 
 	for {
@@ -56,32 +60,33 @@ func DownloadTailscale(fileName string) error {
 			return err
 		}
 
-		// 更新进度条
+		// Update the progress bar
 		total += int64(n)
 		percent = int(float64(total) / float64(contentLength) * 100)
-		utilsTermbox.PrintProgressBar(percent)
+		printProgressBar(percent)
 
 		if err == io.EOF {
 			break
 		}
 	}
 
-	utilsTermbox.PrintMessage("Download completed")
+	pm("Download completed")
 	return nil
 }
 
+// Install installs Tailscale using the specified downloadFileName.
 func Install(downloadFileName string) error {
 	installCmd := exec.Command(downloadFileName, "--install")
 	installCmd.Stdout = os.Stdout
 	installCmd.Stderr = os.Stderr
 
-	utilsTermbox.PrintMessage("Installing Tailscale...")
+	pm("Installing Tailscale...")
 
 	if err := installCmd.Run(); err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Error installing Tailscale: %v\n", err))
+		pm(fmt.Sprintf("Error installing Tailscale: %v\n", err))
 		return err
 	}
 
-	utilsTermbox.PrintMessage("Tailscale installed successfully.")
+	pm("Tailscale installed successfully.")
 	return nil
 }

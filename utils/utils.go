@@ -1,6 +1,7 @@
 package utils
 
 import (
+	// Import required libraries
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
+// allowedSubcommands defines the allowed Tailscale subcommands list.
 var allowedSubcommands = map[string]bool{
 	"up":        true,
 	"down":      true,
@@ -21,7 +23,7 @@ var allowedSubcommands = map[string]bool{
 	"login":     true,
 	"logout":    true,
 	"switch":    true,
-	"configure": true, // ALPHA
+	"configure": true,
 	"netcheck":  true,
 	"ip":        true,
 	"status":    true,
@@ -38,15 +40,20 @@ var allowedSubcommands = map[string]bool{
 	"lock":      true,
 	"licenses":  true,
 	"exit-node": true,
-	"update":    true, // ALPHA
+	"update":    true,
 }
 
+// cm and pm are simplified functions for clearing the screen and printing messages.
+var cm = utilsTermbox.Td.ClearMessage
+var pm = utilsTermbox.Td.PrintMessage
+
+// HasTailscale checks if Tailscale is installed.
 func HasTailscale() bool {
-	utilsTermbox.ClearMessage()
+	cm()
 	cmdObj := exec.Command("cmd", "/C", "where", "tailscale.exe")
 	output, err := cmdObj.CombinedOutput()
 	if err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Command execution error: %v\n", err))
+		pm(fmt.Sprintf("Command execution error: %v\n", err))
 		return false
 	}
 	outputStr := string(output)
@@ -57,16 +64,18 @@ func HasTailscale() bool {
 	}
 }
 
+// OpenMstsc opens the Remote Desktop Connection (mstsc.exe).
 func OpenMstsc() {
 	cmdPath := "C:\\WINDOWS\\system32\\mstsc.exe"
 	cmd := exec.Command(cmdPath)
 	err := cmd.Start()
 	if err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err))
+		pm(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err))
 		return
 	}
 }
 
+// Execution runs a Tailscale subcommand and returns the output.
 func Execution(args ...string) (string, error) {
 	if len(args) < 1 {
 		return "", fmt.Errorf("Error: No subcommand provided.")
@@ -78,7 +87,7 @@ func Execution(args ...string) (string, error) {
 	}
 
 	cmd := exec.Command("tailscale", args...)
-	// 捕获标准输出和标准错误
+	// Capture standard output and standard error
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
@@ -88,17 +97,17 @@ func Execution(args ...string) (string, error) {
 	return outputString, nil
 }
 
+// GetUserInput gets user input.
 func GetUserInput(prompt string) string {
 	inputText := ""
 	cursorX := len(prompt)
-
+	drawString := utilsTermbox.Td.DrawStringAtY()
 	for {
-		utilsTermbox.DrawString(0, utilsTermbox.YTermbox, prompt+inputText)
+		drawString(0, prompt+inputText)
 		event := termbox.PollEvent()
 		switch event.Type {
 		case termbox.EventKey:
 			if event.Key == termbox.KeyEnter {
-				utilsTermbox.YTermbox++
 				return inputText
 			} else if event.Key == termbox.KeyEsc {
 				inputText = ""
@@ -107,7 +116,7 @@ func GetUserInput(prompt string) string {
 				if cursorX > len(prompt) {
 					cursorX--
 					inputText = inputText[:len(inputText)-1]
-					utilsTermbox.DrawString(cursorX, utilsTermbox.YTermbox, " ")
+					drawString(cursorX, " ")
 				}
 			} else if event.Ch != 0 {
 				inputText = inputText[:cursorX-len(prompt)] + string(event.Ch) + inputText[cursorX-len(prompt):]
@@ -117,60 +126,67 @@ func GetUserInput(prompt string) string {
 	}
 }
 
+// CheckTailscale checks if Tailscale is installed, and if not, downloads and installs it.
 func CheckTailscale() {
-	utilsTermbox.PrintMessage("Checking for Tailscale...")
+	pm("Checking for Tailscale...")
 	if !HasTailscale() {
 		downloadFileName := "tailscale-setup-latest.exe"
 		download.DownloadTailscale(downloadFileName)
 		download.Install("./" + downloadFileName)
 		os.Remove("./" + downloadFileName)
-		utilsTermbox.PrintMessage("The installation is complete, please run it again.")
-		utilsTermbox.PrintMessage("Press Enter to continue...")
+		pm("The installation is complete, please run it again.")
+		pm("Press Enter to continue...")
 		termbox.PollEvent()
-		utilsTermbox.ClearMessage()
+		cm()
 		os.Exit(0)
 	}
 }
 
+// Status runs the Tailscale status command.
 func Status() {
 	output, err := Execution("status")
 	if err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
+		pm(fmt.Sprintf("Error: %v", err))
 	} else {
-		utilsTermbox.PrintMessage(output)
+		pm(output)
 	}
 }
 
+// MyIp runs the Tailscale IP command to get my IP address.
 func MyIp() {
-	utilsTermbox.PrintMessage("My IP : ")
+	pm("My IP : ")
 	ip, err := Execution("ip")
 	if err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
+		pm(fmt.Sprintf("Error: %v", err))
 	} else {
-		utilsTermbox.PrintMessage(ip)
+		pm(ip)
 	}
 }
 
+// SwitchAccount switches Tailscale accounts.
 func SwitchAccount(account string) {
 	output, err := Execution("switch", account)
 	if err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
+		pm(fmt.Sprintf("Error: %v", err))
 	} else {
-		utilsTermbox.PrintMessage(output)
+		pm(output)
 	}
 }
 
+// TailscaleAccount contains Tailscale account information.
 type TailscaleAccount struct {
 	AllAccounts    []string
 	CurrentAccount string
 }
 
+// ForEach iterates over all Tailscale accounts.
 func (account *TailscaleAccount) ForEach(fn func(*string)) {
 	for i := range account.AllAccounts {
 		fn(&account.AllAccounts[i])
 	}
 }
 
+// GetAccounts retrieves all Tailscale account information.
 func GetAccounts() (TailscaleAccount, error) {
 	output, err := Execution("switch", "--list")
 	if err != nil {
@@ -194,6 +210,7 @@ func GetAccounts() (TailscaleAccount, error) {
 	return accounts, nil
 }
 
+// GetKey retrieves the Tailscale account key.
 func GetKey() (string, error) {
 	account := GetUserInput("Enter your account: ")
 	password := GetUserInput("Enter your password: ")
@@ -201,14 +218,14 @@ func GetKey() (string, error) {
 	data := map[string]string{"account": account, "password": password}
 	payload, _ := json.Marshal(data)
 
-	// 发起 POST 请求
+	// Send a POST request
 	resp, err := http.Post("https://sky-tailscale.sky1218.com/api/logIn", "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	// 解析响应
+	// Parse the response
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("Failed to log in: %d", resp.StatusCode)
 	}
@@ -224,29 +241,31 @@ func GetKey() (string, error) {
 	return result.Key, nil
 }
 
+// Login logs in to the Tailscale account.
 func Login() {
 	for {
 		key, err := GetKey()
 		if err != nil {
-			utilsTermbox.PrintMessage("Login failed!")
+			pm("Login failed!")
 			continue
 		}
-		utilsTermbox.PrintMessage("Landed successfully!")
+		pm("Logged in successfully!")
 		output, err := Execution("login", "--authkey", key)
 		if err != nil {
-			utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
+			pm(fmt.Sprintf("Error: %v", err))
 		} else {
-			utilsTermbox.PrintMessage(output)
+			pm(output)
 			break
 		}
 	}
 }
 
+// Logout logs out of the Tailscale account.
 func Logout() {
 	output, err := Execution("logout")
 	if err != nil {
-		utilsTermbox.PrintMessage(fmt.Sprintf("Error: %v", err))
+		pm(fmt.Sprintf("Error: %v", err))
 	} else {
-		utilsTermbox.PrintMessage(output)
+		pm(output)
 	}
 }

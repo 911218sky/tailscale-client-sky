@@ -5,6 +5,7 @@ import (
 	"log"
 	"tailscale/menu"
 	"tailscale/utils"
+	"tailscale/utils/utilsTermbox"
 
 	"github.com/nsf/termbox-go"
 )
@@ -14,9 +15,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer termbox.Close()
 
+	utilsTermbox.InIt()
 	utils.CheckTailscale()
-
 	accounts, err := utils.GetAccounts()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
