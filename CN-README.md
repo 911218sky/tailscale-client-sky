@@ -14,7 +14,7 @@
 2. **註冊到 sky-tailscale**
    將獲取到的 API 金鑰放入 [sky-tailscale.sky1218.com](https://sky-tailscale.sky1218.com) 進行註冊，這將允許您將您的設備添加到 Tailscale 網絡。
 
-![用戶界面示例圖片](https://github.com/911218sky/tailscale-cline/releases/download/v1/Web.user.interface.png)
+![用戶界面示例圖片](https://github.com/911218sky/tailscale-client-sky/blob/main/img/sky-tailscale.png)
 
 3. **下載工具**
    下載我們提供的工具，您可以在 [這個 GitHub 頁面](https://github.com/911218sky/tailscale-cline/releases/download/v1/sky-tailscale.exe) 找到最新版本。
@@ -25,7 +25,7 @@
 ## 用戶界面
 這是我們工具的用戶界面示例：
 
-![用戶界面示例圖片](https://github.com/911218sky/tailscale-cline/releases/download/v1/User.interface.png)
+![用戶界面示例圖片](https://github.com/911218sky/tailscale-client-sky/blob/main/img/User-interface.png)
 
 ## 注意事項
 請確保您保護您的 API 金鑰，不要將其洩露給未授權的人員，以確保您的 Tailscale 網絡的安全性。
