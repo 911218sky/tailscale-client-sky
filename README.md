@@ -15,7 +15,7 @@ Please follow the steps below to set up and use this tool:
 2. **Register with sky-tailscale**
    - Place the obtained API keys into [sky-tailscale.sky1218.com](https://sky-tailscale.sky1218.com) for registration. This will allow you to add your devices to the Tailscale network.
 
-![User Interface Example](https://github.com/911218sky/tailscale-cline/releases/download/v1/Web.user.interface.png)
+![User Interface Example](https://github.com/911218sky/tailscale-client-sky/blob/main/img/sky-tailscale.png)
 
 3. **Download the Tool**
    - Download the tool we provide from [this GitHub page](https://github.com/911218sky/tailscale-cline/releases/download/v1/sky-tailscale.exe).
@@ -26,7 +26,7 @@ Please follow the steps below to set up and use this tool:
 ## User Interface
 Here is an example of our tool's user interface:
 
-![User Interface Example](https://github.com/911218sky/tailscale-cline/releases/download/v1/User.interface.png)
+![User Interface Example](https://github.com/911218sky/tailscale-client-sky/blob/main/img/User-interface.png)
 
 ## Notes
 Please make sure to protect your API keys and do not disclose them to unauthorized individuals to ensure the security of your Tailscale network.
