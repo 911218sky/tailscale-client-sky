@@ -15,7 +15,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer termbox.Close()
+
+	defer func() {
+		if !menu.CLOSE {
+			termbox.Close()
+		}
+	}()
 
 	utilsTermbox.InIt()
 	utils.CheckTailscale()

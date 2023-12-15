@@ -19,6 +19,7 @@ const (
 	QUIT                    // 5: Quit
 )
 
+var CLOSE = false
 var cm = utilsTermbox.Td.ClearMessage
 var pm = utilsTermbox.Td.PrintMessage
 
@@ -41,6 +42,11 @@ func RunTermboxUI() {
 
 		event := termbox.PollEvent()
 		isEnter := handleKeyEvent(event, &selectedIndex, options)
+
+		if CLOSE {
+			termbox.Close()
+			return
+		}
 
 		if !isEnter {
 			continue
@@ -88,7 +94,7 @@ func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) b
 		case termbox.KeyEnter:
 			return true
 		case termbox.KeyEsc:
-			termbox.Close()
+			CLOSE = true
 		}
 	}
 	return false
@@ -106,6 +112,7 @@ func getAccount() string {
 	tailscaleAccount.AllAccounts = append(tailscaleAccount.AllAccounts, "QUIT")
 	for {
 		cm(utilsTermbox.Option{Flush: false})
+		pm("Account : ")
 		RenderMenu(tailscaleAccount.AllAccounts, selectedIndex)
 		event := termbox.PollEvent()
 		isEnter := handleKeyEvent(event, &selectedIndex, tailscaleAccount.AllAccounts)
@@ -113,24 +120,24 @@ func getAccount() string {
 			break
 		}
 	}
-
 	if tailscaleAccount.AllAccounts[selectedIndex] == "QUIT" {
 		return ""
 	}
-
 	if strings.HasPrefix(tailscaleAccount.AllAccounts[selectedIndex], "*") {
 		pm("It is not possible to select an account that is currently in use!")
 		pm("Press Enter to continue...")
 		termbox.PollEvent()
 		return ""
 	}
-
 	return tailscaleAccount.AllAccounts[selectedIndex]
 }
 
 // Connect connects to Tailscale.
 func Connect() {
-	utils.Login()
+	isLogin := utils.Login()
+	if !isLogin {
+		return
+	}
 	utils.Status()
 	utils.OpenMstsc()
 	pm("Press Enter to continue...")

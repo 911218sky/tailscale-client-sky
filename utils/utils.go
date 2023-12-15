@@ -43,6 +43,8 @@ var allowedSubcommands = map[string]bool{
 	"update":    true,
 }
 
+const ESC = "ESC"
+
 // cm and pm are simplified functions for clearing the screen and printing messages.
 var cm = utilsTermbox.Td.ClearMessage
 var pm = utilsTermbox.Td.PrintMessage
@@ -105,22 +107,23 @@ func GetUserInput(prompt string) string {
 	for {
 		drawString(0, prompt+inputText)
 		event := termbox.PollEvent()
-		switch event.Type {
-		case termbox.EventKey:
-			if event.Key == termbox.KeyEnter {
+		if event.Type == termbox.EventKey {
+			switch event.Key {
+			case termbox.KeyEsc:
+				return ESC
+			case termbox.KeyEnter:
 				return inputText
-			} else if event.Key == termbox.KeyEsc {
-				inputText = ""
-				return inputText
-			} else if event.Key == termbox.KeyBackspace || event.Key == termbox.KeyBackspace2 {
+			case termbox.KeyBackspace, termbox.KeyBackspace2:
 				if cursorX > len(prompt) {
 					cursorX--
 					inputText = inputText[:len(inputText)-1]
 					drawString(cursorX, " ")
 				}
-			} else if event.Ch != 0 {
-				inputText = inputText[:cursorX-len(prompt)] + string(event.Ch) + inputText[cursorX-len(prompt):]
-				cursorX++
+			default:
+				if event.Ch != 0 {
+					inputText = inputText[:cursorX-len(prompt)] + string(event.Ch) + inputText[cursorX-len(prompt):]
+					cursorX++
+				}
 			}
 		}
 	}
@@ -197,14 +200,15 @@ func GetAccounts() (TailscaleAccount, error) {
 	lines := strings.Split(outputString, "\n")
 
 	accounts := TailscaleAccount{}
-	for _, line := range lines {
+	for _, line := range lines[1:] {
 		parts := strings.Fields(line)
-		if len(parts) >= 1 {
-			accountName := parts[0]
-			accounts.AllAccounts = append(accounts.AllAccounts, accountName)
+		if len(parts) >= 3 {
+			accountName := parts[2]
 			if strings.HasSuffix(line, "*") {
+				accountName = accountName[:len(accountName)-1]
 				accounts.CurrentAccount = accountName
 			}
+			accounts.AllAccounts = append(accounts.AllAccounts, accountName)
 		}
 	}
 	return accounts, nil
@@ -213,8 +217,13 @@ func GetAccounts() (TailscaleAccount, error) {
 // GetKey retrieves the Tailscale account key.
 func GetKey() (string, error) {
 	account := GetUserInput("Enter your account: ")
+	if account == ESC {
+		return account, nil
+	}
 	password := GetUserInput("Enter your password: ")
-
+	if password == ESC {
+		return password, nil
+	}
 	data := map[string]string{"account": account, "password": password}
 	payload, _ := json.Marshal(data)
 
@@ -242,9 +251,12 @@ func GetKey() (string, error) {
 }
 
 // Login logs in to the Tailscale account.
-func Login() {
+func Login() bool {
 	for {
 		key, err := GetKey()
+		if key == ESC {
+			return false
+		}
 		if err != nil {
 			pm("Login failed!")
 			continue
@@ -255,7 +267,7 @@ func Login() {
 			pm(fmt.Sprintf("Error: %v", err))
 		} else {
 			pm(output)
-			break
+			return true
 		}
 	}
 }
