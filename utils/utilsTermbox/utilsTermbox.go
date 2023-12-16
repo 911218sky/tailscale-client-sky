@@ -67,9 +67,11 @@ func (td *TermboxDrawer) ClearMessage(options ...Option) {
 	option := Option{
 		Flush: true,
 	}
+
 	if len(options) > 0 {
 		option = options[0]
 	}
+
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	if option.Flush {
 		termbox.Flush()
@@ -82,7 +84,7 @@ func (td *TermboxDrawer) ProgressBarAtY() func(percent int, options ...Option) {
 	td.yTermbox++
 	return func(percent int, options ...Option) {
 		w, _ := termbox.Size()
-		totalWidth := w - 2 - len(" 100/100")
+		totalWidth := w - 6 - len(" 100/100")
 		fillWidth := int(float64(totalWidth) * float64(percent) / 100)
 
 		option := Option{
@@ -94,16 +96,16 @@ func (td *TermboxDrawer) ProgressBarAtY() func(percent int, options ...Option) {
 		}
 
 		// Draw the left boundary of the progress bar
-		termbox.SetCell(0, y, '|', termbox.ColorWhite, termbox.ColorDefault)
+		termbox.SetCell(2, y, '|', termbox.ColorWhite, termbox.ColorDefault)
 
 		// Draw the completed part
 		for i := 0; i < fillWidth; i++ {
-			termbox.SetCell(i+1, y, '=', termbox.ColorGreen, termbox.ColorDefault)
+			termbox.SetCell(i+3, y, '=', termbox.ColorGreen, termbox.ColorDefault)
 		}
 
 		// Draw the remaining part
 		for i := fillWidth; i < totalWidth; i++ {
-			termbox.SetCell(i+1, y, '-', termbox.ColorDefault, termbox.ColorDefault)
+			termbox.SetCell(i+3, y, '-', termbox.ColorDefault, termbox.ColorDefault)
 		}
 
 		// Draw the right boundary of the progress bar

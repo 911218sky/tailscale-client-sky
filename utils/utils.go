@@ -132,7 +132,7 @@ func GetUserInput(prompt string) string {
 // CheckTailscale checks if Tailscale is installed, and if not, downloads and installs it.
 func CheckTailscale() {
 	pm("Checking for Tailscale...")
-	if !HasTailscale() {
+	if HasTailscale() {
 		downloadFileName := "tailscale-setup-latest.exe"
 		download.DownloadTailscale(downloadFileName)
 		download.Install("./" + downloadFileName)
