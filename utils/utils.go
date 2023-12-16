@@ -15,40 +15,6 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-// allowedSubcommands defines the allowed Tailscale subcommands list.
-var allowedSubcommands = map[string]bool{
-	"up":        true,
-	"down":      true,
-	"set":       true,
-	"login":     true,
-	"logout":    true,
-	"switch":    true,
-	"configure": true,
-	"netcheck":  true,
-	"ip":        true,
-	"status":    true,
-	"ping":      true,
-	"nc":        true,
-	"ssh":       true,
-	"funnel":    true,
-	"serve":     true,
-	"version":   true,
-	"web":       true,
-	"file":      true,
-	"bugreport": true,
-	"cert":      true,
-	"lock":      true,
-	"licenses":  true,
-	"exit-node": true,
-	"update":    true,
-}
-
-const ESC = "ESC"
-
-// cm and pm are simplified functions for clearing the screen and printing messages.
-var cm = utilsTermbox.Td.ClearMessage
-var pm = utilsTermbox.Td.PrintMessage
-
 // HasTailscale checks if Tailscale is installed.
 func HasTailscale() bool {
 	cm()
@@ -228,10 +194,11 @@ func GetKey() (string, error) {
 	payload, _ := json.Marshal(data)
 
 	// Send a POST request
-	resp, err := http.Post("https://sky-tailscale.sky1218.com/api/logIn", "application/json", bytes.NewBuffer(payload))
+	resp, err := http.Post(GET_KEY_URL, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
+
 	defer resp.Body.Close()
 
 	// Parse the response
