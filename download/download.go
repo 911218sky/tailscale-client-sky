@@ -27,7 +27,7 @@ func DownloadTailscale(fileName string) error {
 	// Get the file size
 	contentLength := resp.ContentLength
 	if contentLength <= 0 {
-		return fmt.Errorf("Unable to get file size")
+		return fmt.Errorf("unable to get file size")
 	}
 
 	// Create the file

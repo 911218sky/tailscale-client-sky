@@ -46,12 +46,12 @@ func OpenMstsc() {
 // Execution runs a Tailscale subcommand and returns the output.
 func Execution(args ...string) (string, error) {
 	if len(args) < 1 {
-		return "", fmt.Errorf("Error: No subcommand provided.")
+		return "", fmt.Errorf("error: no subcommand provided")
 	}
 
 	subcommand := args[0]
 	if !allowedSubcommands[subcommand] {
-		return "", fmt.Errorf("Error: Invalid subcommand: %s", subcommand)
+		return "", fmt.Errorf("error: invalid subcommand: %s", subcommand)
 	}
 
 	cmd := exec.Command("tailscale", args...)
@@ -203,7 +203,7 @@ func GetKey() (string, error) {
 
 	// Parse the response
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Failed to log in: %d", resp.StatusCode)
+		return "", fmt.Errorf("failed to log in: %d", resp.StatusCode)
 	}
 
 	var result struct {
@@ -228,11 +228,12 @@ func Login() bool {
 			pm("Login failed!")
 			continue
 		}
-		pm("Logged in successfully!")
+		pm("Bitte haben Sie etwas Geduld, wir loggen uns gerade ein ...")
 		output, err := Execution("login", "--authkey", key)
 		if err != nil {
 			pm(fmt.Sprintf("Error: %v", err))
 		} else {
+			pm("Logged in successfully!")
 			pm(output)
 			return true
 		}
