@@ -54,7 +54,7 @@ func Execution(args ...string) (string, error) {
 		return "", fmt.Errorf("error: invalid subcommand: %s", subcommand)
 	}
 
-	cmd := exec.Command("tailscale", args...)
+	cmd := exec.Command("C:\\Program Files\\Tailscale\\tailscale.exe", args...)
 	// Capture standard output and standard error
 	output, err := cmd.CombinedOutput()
 	if err != nil {
