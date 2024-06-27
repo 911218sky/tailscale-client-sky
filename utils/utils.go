@@ -18,14 +18,15 @@ import (
 // HasTailscale checks if Tailscale is installed.
 func HasTailscale() bool {
 	cm()
-	cmdObj := exec.Command("cmd", "/C", "where", "tailscale.exe")
-	output, err := cmdObj.CombinedOutput()
+	cmd := exec.Command("tailscale", "--version")
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		pm(fmt.Sprintf("Command execution error: %v\n", err))
 		return false
 	}
 	outputStr := string(output)
-	if strings.Contains(outputStr, "tailscale.exe") {
+	if strings.Contains(outputStr, "go version") {
+		pm(outputStr)
 		return true
 	} else {
 		return false
@@ -54,7 +55,7 @@ func Execution(args ...string) (string, error) {
 		return "", fmt.Errorf("error: invalid subcommand: %s", subcommand)
 	}
 
-	cmd := exec.Command("C:\\Program Files\\Tailscale\\tailscale.exe", args...)
+	cmd := exec.Command("tailscale", args...)
 	// Capture standard output and standard error
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -109,6 +110,10 @@ func CheckTailscale() {
 		cm()
 		os.Exit(0)
 	}
+	pm("Environmental inspection complete.")
+	pm("Press Enter to continue...")
+	termbox.PollEvent()
+	cm()
 }
 
 // Status runs the Tailscale status command.

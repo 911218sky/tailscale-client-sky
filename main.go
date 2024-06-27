@@ -51,5 +51,5 @@ func main() {
 // icon
 // go install github.com/tc-hib/go-winres@latest
 // go-winres simply --icon ./img/sky-tailscale-icon.png
-// go build -ldflags "-s -w"
-// upx -9 tailscale.exe
+// go build -ldflags "-s -w" -o sky-tailscale.exe
+// upx -9 sky-tailscale.exe
