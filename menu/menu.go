@@ -1,7 +1,6 @@
 package menu
 
 import (
-	"os"
 	"strings"
 
 	"tailscale/utils"
@@ -19,7 +18,6 @@ const (
 	QUIT                    // 5: Quit
 )
 
-var CLOSE = false
 var cm = utilsTermbox.Td.ClearMessage
 var pm = utilsTermbox.Td.PrintMessage
 
@@ -32,7 +30,6 @@ func RunTermboxUI() {
 		SIGNOUT:          SignOut,
 		LIST_INFORMATION: ListInformation,
 		OPEN_MSTSC:       utils.OpenMstsc,
-		QUIT:             Quit,
 	}
 	selectedIndex := 0
 
@@ -43,13 +40,13 @@ func RunTermboxUI() {
 		event := termbox.PollEvent()
 		isEnter := handleKeyEvent(event, &selectedIndex, options)
 
-		if CLOSE {
-			termbox.Close()
-			return
-		}
-
 		if !isEnter {
 			continue
+		}
+
+		if selectedIndex == QUIT {
+			cm()
+			return
 		}
 
 		action, found := optionToAction[selectedIndex]
@@ -94,7 +91,7 @@ func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) b
 		case termbox.KeyEnter:
 			return true
 		case termbox.KeyEsc:
-			CLOSE = true
+			*selectedIndex = QUIT
 		}
 	}
 	return false
@@ -170,10 +167,4 @@ func ListInformation() {
 	utils.Status()
 	pm("Press Enter to continue...")
 	termbox.PollEvent()
-}
-
-// Quit exits the application.
-func Quit() {
-	cm()
-	os.Exit(0)
 }

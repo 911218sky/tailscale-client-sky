@@ -1,24 +1,31 @@
-package main
+package debug
 
 import (
 	"fmt"
 	"os"
+	"runtime/trace"
 	"tailscale/menu"
 	"tailscale/utils"
-	"tailscale/utils/debug"
 	"tailscale/utils/utilsTermbox"
 
 	"github.com/nsf/termbox-go"
 )
 
-func main() {
-	if len(os.Args) > 1 && os.Args[1] == "-d" {
-		debug.Debug()
-		return
+func Debug() {
+	f, err := os.Create("trace.out")
+	if err != nil {
+		panic(err)
 	}
 
+	defer f.Close()
+	defer trace.Stop()
 	defer termbox.Close()
-	err := termbox.Init()
+
+	if err := trace.Start(f); err != nil {
+		panic(err)
+	}
+
+	err = termbox.Init()
 	if err != nil {
 		panic(err)
 	}
