@@ -1,5 +1,3 @@
-以下是更新后的文档，删除了与 `rsrc` 相关的所有步骤，专注于编译 Go 可执行文件并添加图标的过程。
-
 ```markdown
 # Building a Go Application with Icon on Windows
 
