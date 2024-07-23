@@ -1,16 +1,3 @@
-```markdown
-# Building a Go Application with Icon on Windows
-
-This document provides a step-by-step guide for building a Go application on Windows and adding an icon to the executable.
-
-## Prerequisites
-
-Make sure you have the following installed:
-- **Go programming language**: Follow the [official installation guide](https://golang.org/doc/install) to set it up.
-- **UPX** (Optional): For compressing the executable, you can download it from the [UPX official site](https://upx.github.io/).
-
-Ensure that Go is added to your system's PATH environment variable.
-
 ## Steps
 
 ### 1. Install Dependencies
