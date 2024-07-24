@@ -1,7 +1,6 @@
 package utils
 
 import (
-	// Import required libraries
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -10,37 +9,34 @@ import (
 	"os/exec"
 	"strings"
 	"tailscale/download"
-	"tailscale/utils/utilsTermbox"
+	"tailscale/utils/drawer"
 
 	"github.com/nsf/termbox-go"
 )
 
 // HasTailscale checks if Tailscale is installed.
 func HasTailscale() bool {
-	cm()
+	drawer.Clear(drawer.DefaultOption)
 	cmd := exec.Command("tailscale", "--version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		pm(fmt.Sprintf("Command execution error: %v\n", err))
+		drawer.Print(fmt.Sprintf("Command execution error: %v\n", err), drawer.DefaultOptionNoFlush)
 		return false
 	}
 	outputStr := string(output)
 	if strings.Contains(outputStr, "go version") {
-		pm(outputStr)
+		drawer.Print(outputStr, drawer.DefaultOptionNoFlush)
 		return true
-	} else {
-		return false
 	}
+	return false
 }
 
 // OpenMstsc opens the Remote Desktop Connection (mstsc.exe).
 func OpenMstsc() {
 	cmdPath := "C:\\WINDOWS\\system32\\mstsc.exe"
-	cmd := exec.Command(cmdPath)
-	err := cmd.Start()
+	err := exec.Command(cmdPath).Start()
 	if err != nil {
-		pm(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err))
-		return
+		drawer.Print(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err), drawer.DefaultOptionNoFlush)
 	}
 }
 
@@ -56,35 +52,35 @@ func Execution(args ...string) (string, error) {
 	}
 
 	cmd := exec.Command("tailscale", args...)
-	// Capture standard output and standard error
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
 	}
 
-	outputString := string(output)
-	return outputString, nil
+	return string(output), nil
 }
 
-// GetUserInput gets user input.
+// GetUserInput prompts the user for input.
 func GetUserInput(prompt string) string {
-	inputText := ""
+	var inputText string
 	cursorX := len(prompt)
-	drawString := utilsTermbox.Td.DrawStringAtY()
+	y := drawer.GetY()
+
 	for {
-		drawString(0, prompt+inputText)
+		drawer.Render(y, 0, prompt+inputText)
 		event := termbox.PollEvent()
 		if event.Type == termbox.EventKey {
 			switch event.Key {
 			case termbox.KeyEsc:
 				return ESC
 			case termbox.KeyEnter:
+				drawer.NextLine()
 				return inputText
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
 				if cursorX > len(prompt) {
 					cursorX--
 					inputText = inputText[:len(inputText)-1]
-					drawString(cursorX, " ")
+					drawer.Render(y, cursorX, " ")
 				}
 			default:
 				if event.Ch != 0 {
@@ -96,58 +92,62 @@ func GetUserInput(prompt string) string {
 	}
 }
 
-// CheckTailscale checks if Tailscale is installed, and if not, downloads and installs it.
+// CheckTailscale checks for Tailscale installation and installs it if not found.
 func CheckTailscale() {
-	pm("Checking for Tailscale...")
+	drawer.Print("Checking for Tailscale...", drawer.DefaultOption)
 	if !HasTailscale() {
 		downloadFileName := "tailscale-setup-latest.exe"
 		download.DownloadTailscale(downloadFileName)
-		download.Install("./" + downloadFileName)
+		err := download.Install("./" + downloadFileName)
+		if err != nil {
+			drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
+			os.Exit(0)
+		}
 		os.Remove("./" + downloadFileName)
-		pm("The installation is complete, please run it again.")
-		pm("Press Enter to continue...")
+		drawer.Print("Installation is complete. Please run it again.", drawer.DefaultOptionNoFlush)
+		drawer.Print("Press Enter to continue...", drawer.DefaultOption)
 		termbox.PollEvent()
-		cm()
+		drawer.Clear(drawer.DefaultOption)
 		os.Exit(0)
 	}
-	pm("Environmental inspection complete.")
-	pm("Press Enter to continue...")
+	drawer.Print("Environmental inspection complete.", drawer.DefaultOptionNoFlush)
+	drawer.Print("Press Enter to continue...", drawer.DefaultOption)
 	termbox.PollEvent()
-	cm()
+	drawer.Clear(drawer.DefaultOption)
 }
 
 // Status runs the Tailscale status command.
 func Status() {
 	output, err := Execution("status")
 	if err != nil {
-		pm(fmt.Sprintf("Error: %v", err))
-	} else {
-		pm(output)
+		drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
+		return
 	}
+	drawer.Print(output, drawer.DefaultOption)
 }
 
-// MyIp runs the Tailscale IP command to get my IP address.
+// MyIp runs the Tailscale IP command to get the IP address.
 func MyIp() {
-	pm("My IP : ")
+	drawer.Print("My IP : ", drawer.DefaultOptionNoFlush)
 	ip, err := Execution("ip")
 	if err != nil {
-		pm(fmt.Sprintf("Error: %v", err))
-	} else {
-		pm(ip)
+		drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
+		return
 	}
+	drawer.Print(ip, drawer.DefaultOption)
 }
 
 // SwitchAccount switches Tailscale accounts.
 func SwitchAccount(account string) {
 	output, err := Execution("switch", account)
 	if err != nil {
-		pm(fmt.Sprintf("Error: %v", err))
-	} else {
-		pm(output)
+		drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
+		return
 	}
+	drawer.Print(output, drawer.DefaultOption)
 }
 
-// TailscaleAccount contains Tailscale account information.
+// TailscaleAccount holds Tailscale account information.
 type TailscaleAccount struct {
 	AllAccounts    []string
 	CurrentAccount string
@@ -167,10 +167,9 @@ func GetAccounts() (TailscaleAccount, error) {
 		return TailscaleAccount{}, err
 	}
 
-	outputString := string(output)
-	lines := strings.Split(outputString, "\n")
-
+	lines := strings.Split(string(output), "\n")
 	accounts := TailscaleAccount{}
+
 	for _, line := range lines[1:] {
 		parts := strings.Fields(line)
 		if len(parts) >= 3 {
@@ -185,7 +184,7 @@ func GetAccounts() (TailscaleAccount, error) {
 	return accounts, nil
 }
 
-// GetKey retrieves the Tailscale account key.
+// GetKey retrieves the Tailscale account key from user input.
 func GetKey() (string, error) {
 	account := GetUserInput("Enter your account: ")
 	if account == ESC {
@@ -195,18 +194,16 @@ func GetKey() (string, error) {
 	if password == ESC {
 		return password, nil
 	}
+
 	data := map[string]string{"account": account, "password": password}
 	payload, _ := json.Marshal(data)
 
-	// Send a POST request
 	resp, err := http.Post(GET_KEY_URL, "application/json", bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
-
 	defer resp.Body.Close()
 
-	// Parse the response
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to log in: %d", resp.StatusCode)
 	}
@@ -230,16 +227,16 @@ func Login() bool {
 			return false
 		}
 		if err != nil {
-			pm("Login failed!")
+			drawer.Print("Login failed!", drawer.DefaultOption)
 			continue
 		}
-		pm("Bitte haben Sie etwas Geduld, wir loggen uns gerade ein ...")
+		drawer.Print("Please wait, logging in...", drawer.DefaultOptionNoFlush)
 		output, err := Execution("login", "--authkey", key)
 		if err != nil {
-			pm(fmt.Sprintf("Error: %v", err))
+			drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
 		} else {
-			pm("Logged in successfully!")
-			pm(output)
+			drawer.Print("Logged in successfully!", drawer.DefaultOptionNoFlush)
+			drawer.Print(output, drawer.DefaultOption)
 			return true
 		}
 	}
@@ -249,8 +246,8 @@ func Login() bool {
 func Logout() {
 	output, err := Execution("logout")
 	if err != nil {
-		pm(fmt.Sprintf("Error: %v", err))
-	} else {
-		pm(output)
+		drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
+		return
 	}
+	drawer.Print(output, drawer.DefaultOption)
 }

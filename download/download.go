@@ -6,17 +6,15 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"tailscale/utils/utilsTermbox"
+
+	"tailscale/utils/drawer"
 )
 
 const tailscaleDownloadURL = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 
-var pm = utilsTermbox.Td.PrintMessage
-var cm = utilsTermbox.Td.ClearMessage
-
 // DownloadTailscale downloads the Tailscale installer with the specified fileName.
 func DownloadTailscale(fileName string) error {
-	pm("Downloading Tailscale...")
+	drawer.Print("Downloading Tailscale...", drawer.DefaultOption)
 
 	resp, err := http.Get(tailscaleDownloadURL)
 	if err != nil {
@@ -24,26 +22,31 @@ func DownloadTailscale(fileName string) error {
 	}
 	defer resp.Body.Close()
 
+	// Check the response status
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download: %s", resp.Status)
+	}
+
 	// Get the file size
 	contentLength := resp.ContentLength
 	if contentLength <= 0 {
 		return fmt.Errorf("unable to get file size")
 	}
 
-	// Create the file
+	// Create the destination file
 	file, err := os.Create(fileName)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Set the initial state of the progress bar
+	// Initialize progress bar state
 	percent := 0
 	total := int64(0)
-	printProgressBar := utilsTermbox.Td.ProgressBarAtY()
-	printProgressBar(percent)
+	y := drawer.GetY()
+	drawer.DrawProgressBar(y, percent, drawer.DefaultOption)
 
-	// Copy file content to the file and manually update the progress bar
+	// Buffer for reading response body
 	buffer := make([]byte, 1024)
 
 	for {
@@ -55,38 +58,38 @@ func DownloadTailscale(fileName string) error {
 			break
 		}
 
-		_, err = file.Write(buffer[:n])
-		if err != nil {
+		// Write to the file
+		if _, err := file.Write(buffer[:n]); err != nil {
 			return err
 		}
 
-		// Update the progress bar
+		// Update progress
 		total += int64(n)
 		percent = int(float64(total) / float64(contentLength) * 100)
-		printProgressBar(percent)
+		drawer.DrawProgressBar(y, percent, drawer.DefaultOption)
 
 		if err == io.EOF {
 			break
 		}
 	}
 
-	pm("Download completed")
+	drawer.NextLine()
+	drawer.Print("Download completed", drawer.DefaultOption)
 	return nil
 }
 
-// Install installs Tailscale using the specified downloadFileName.
+// Install installs Tailscale using the specified download file name.
 func Install(downloadFileName string) error {
 	installCmd := exec.Command(downloadFileName, "--install")
 	installCmd.Stdout = os.Stdout
 	installCmd.Stderr = os.Stderr
 
-	pm("Installing Tailscale...")
+	drawer.Print("Installing Tailscale...", drawer.DefaultOption)
 
 	if err := installCmd.Run(); err != nil {
-		pm(fmt.Sprintf("Error installing Tailscale: %v\n", err))
-		return err
+		return fmt.Errorf(fmt.Sprintf("Error installing Tailscale: %v\n", err))
 	}
 
-	pm("Tailscale installed successfully.")
+	drawer.Print("Tailscale installed successfully.", drawer.DefaultOption)
 	return nil
 }

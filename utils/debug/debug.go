@@ -6,7 +6,7 @@ import (
 	"runtime/trace"
 	"tailscale/menu"
 	"tailscale/utils"
-	"tailscale/utils/utilsTermbox"
+	"tailscale/utils/drawer"
 
 	"github.com/nsf/termbox-go"
 )
@@ -25,22 +25,18 @@ func Debug() {
 		panic(err)
 	}
 
-	err = termbox.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	utilsTermbox.InIt()
 	utils.CheckTailscale()
 
 	accounts, err := utils.GetAccounts()
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		drawer.Print(fmt.Sprintf("Error: %v\n", err), drawer.DefaultOption)
+		return
 	} else if len(accounts.AllAccounts) == 0 {
 		menu.Connect()
 	} else if len(accounts.AllAccounts) == 1 {
 		utils.SwitchAccount(accounts.AllAccounts[0])
 	}
 
+	drawer.Clear(drawer.DefaultOption)
 	menu.RunTermboxUI()
 }

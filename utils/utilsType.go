@@ -1,7 +1,5 @@
 package utils
 
-import "tailscale/utils/utilsTermbox"
-
 // allowedSubcommands defines the allowed Tailscale subcommands list.
 var allowedSubcommands = map[string]bool{
 	"up":        true,
@@ -38,7 +36,3 @@ const (
 	// This URL points to an external service for authentication and retrieval of user credentials
 	GET_KEY_URL = "https://sky-tailscale.sky1218.com/api/logIn"
 )
-
-// cm and pm are simplified functions for clearing the screen and printing messages.
-var cm = utilsTermbox.Td.ClearMessage
-var pm = utilsTermbox.Td.PrintMessage
