@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"tailscale/download"
 	"tailscale/utils/drawer"
@@ -33,10 +34,14 @@ func HasTailscale() bool {
 
 // OpenMstsc opens the Remote Desktop Connection (mstsc.exe).
 func OpenMstsc() {
+	if runtime.GOOS != "windows" {
+		drawer.Print("System is not Windows, cannot start mstsc.exe\n", drawer.DefaultOptionNoFlush)
+		return
+	}
 	cmdPath := "C:\\WINDOWS\\system32\\mstsc.exe"
 	err := exec.Command(cmdPath).Start()
 	if err != nil {
-		drawer.Print(fmt.Sprintf("Cannot start mstsc.exe: %v\n", err), drawer.DefaultOptionNoFlush)
+		drawer.Print(fmt.Sprintf("Error: %v\n", err), drawer.DefaultOptionNoFlush)
 	}
 }
 
@@ -96,14 +101,18 @@ func GetUserInput(prompt string) string {
 func CheckTailscale() {
 	drawer.Print("Checking for Tailscale...", drawer.DefaultOption)
 	if !HasTailscale() {
-		downloadFileName := "tailscale-setup-latest.exe"
-		download.DownloadTailscale(downloadFileName)
-		err := download.Install("./" + downloadFileName)
-		if err != nil {
-			drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
-			os.Exit(0)
+		if runtime.GOOS == "windows" {
+			downloadFileName := "tailscale-setup-latest.exe"
+			download.DownloadTailscaleWindows(downloadFileName)
+			err := download.Install("./" + downloadFileName)
+			if err != nil {
+				drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
+				os.Exit(0)
+			}
+			os.Remove("./" + downloadFileName)
+		} else if runtime.GOOS == "linux" {
+			download.DownloadTailscaleLinux()
 		}
-		os.Remove("./" + downloadFileName)
 		drawer.Print("Installation is complete. Please run it again.", drawer.DefaultOptionNoFlush)
 		drawer.Print("Press Enter to continue...", drawer.DefaultOption)
 		termbox.PollEvent()

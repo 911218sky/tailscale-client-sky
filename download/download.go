@@ -12,8 +12,8 @@ import (
 
 const tailscaleDownloadURL = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 
-// DownloadTailscale downloads the Tailscale installer with the specified fileName.
-func DownloadTailscale(fileName string) error {
+// DownloadTailscaleWindows downloads the Tailscale installer with the specified fileName.
+func DownloadTailscaleWindows(fileName string) error {
 	drawer.Print("Downloading Tailscale...", drawer.DefaultOption)
 
 	resp, err := http.Get(tailscaleDownloadURL)
@@ -78,6 +78,21 @@ func DownloadTailscale(fileName string) error {
 	return nil
 }
 
+// DownloadTailscaleLinux downloads the Tailscale installer with the specified fileName.
+func DownloadTailscaleLinux() error {
+	cmd := exec.Command("sh", "-c", "curl -fsSL https://tailscale.com/install.sh | sh")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	drawer.Print("Downloading and installing Tailscale for Linux...", drawer.DefaultOption)
+
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	drawer.Print("Tailscale downloaded and installed successfully.", drawer.DefaultOption)
+	return nil
+}
+
 // Install installs Tailscale using the specified download file name.
 func Install(downloadFileName string) error {
 	installCmd := exec.Command(downloadFileName, "--install")
@@ -87,7 +102,7 @@ func Install(downloadFileName string) error {
 	drawer.Print("Installing Tailscale...", drawer.DefaultOption)
 
 	if err := installCmd.Run(); err != nil {
-		return fmt.Errorf(fmt.Sprintf("Error installing Tailscale: %v\n", err))
+		return err
 	}
 
 	drawer.Print("Tailscale installed successfully.", drawer.DefaultOption)
