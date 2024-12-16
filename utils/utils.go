@@ -240,6 +240,7 @@ func Login() bool {
 			continue
 		}
 		drawer.Print("Please wait, logging in...", drawer.DefaultOptionNoFlush)
+		drawer.Print("Is getting key...", drawer.DefaultOptionNoFlush)
 		output, err := Execution("login", "--authkey", key)
 		if err != nil {
 			drawer.Print(fmt.Sprintf("Error: %v", err), drawer.DefaultOption)
