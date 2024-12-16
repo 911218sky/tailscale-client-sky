@@ -3,3 +3,7 @@
 *.log
 *.tmp
 *.exe
+
+sky-tailscale-linux
+sky-tailscale.exe
+*.syso

@@ -1,3 +1,4 @@
+// Package menu provides functionality for a terminal-based menu interface
 package menu
 
 import (
@@ -8,17 +9,18 @@ import (
 	"github.com/nsf/termbox-go"
 )
 
-// Menu Item Constants
+// Menu item constants representing different menu options
 const (
-	CONNECT          = iota // 0: Connect
-	SWITCHACCOUNT           // 1: Switch Account
-	SIGNOUT                 // 2: Sign Out
-	LIST_INFORMATION        // 3: List Information
-	OPEN_MSTSC              // 4: Open Remote Desktop
-	QUIT                    // 5: Quit
+	CONNECT          = iota // Connect to Tailscale
+	SWITCHACCOUNT           // Switch between Tailscale accounts
+	SIGNOUT                 // Sign out of current account
+	LIST_INFORMATION        // Display Tailscale information
+	OPEN_MSTSC              // Open Remote Desktop Connection
+	QUIT                    // Exit the application
 )
 
-// RunTermboxUI starts the Termbox user interface.
+// RunTermboxUI starts the Termbox user interface and handles the main menu loop.
+// It displays menu options and executes corresponding actions based on user input.
 func RunTermboxUI() {
 	options := []string{"Connect", "Switch Account", "Sign Out", "List Information", "Open Remote Desktop", "Quit"}
 	optionToAction := map[int]func(){
@@ -58,6 +60,9 @@ func RunTermboxUI() {
 }
 
 // RenderMenu displays the menu items with the selected option highlighted.
+// Parameters:
+//   - options: slice of strings containing menu options
+//   - selectedIndex: index of currently selected menu item
 func RenderMenu(options []string, selectedIndex int) {
 	drawer.Clear(drawer.DefaultOptionNoFlush)
 	for i, option := range options {
@@ -70,6 +75,13 @@ func RenderMenu(options []string, selectedIndex int) {
 }
 
 // handleKeyEvent processes keyboard events for selecting menu items.
+// Parameters:
+//   - event: termbox keyboard event
+//   - selectedIndex: pointer to current selection index
+//   - options: available menu options
+//
+// Returns:
+//   - bool: true if Enter key was pressed, false otherwise
 func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) bool {
 	if event.Type == termbox.EventKey {
 		switch event.Key {
@@ -95,6 +107,8 @@ func handleKeyEvent(event termbox.Event, selectedIndex *int, options []string) b
 }
 
 // getAccount retrieves the Tailscale account to switch to.
+// It displays a list of available accounts and handles user selection.
+// Returns selected account name or empty string if selection is cancelled.
 func getAccount() string {
 	tailscaleAccount, _ := utils.GetAccounts()
 	selectedIndex := 0
@@ -109,7 +123,7 @@ func getAccount() string {
 	tailscaleAccount.AllAccounts = append(tailscaleAccount.AllAccounts, "QUIT")
 
 	for {
-		drawer.Clear(drawer.Option{Flush: false})
+		drawer.Clear(drawer.DefaultOptionNoFlush)
 		drawer.Print("Account : ", drawer.DefaultOption)
 		RenderMenu(tailscaleAccount.AllAccounts, selectedIndex)
 
@@ -133,6 +147,7 @@ func getAccount() string {
 }
 
 // Connect initiates the connection to Tailscale.
+// It handles the login process, checks status, and opens Remote Desktop connection.
 func Connect() {
 	isLogin := utils.Login()
 	if !isLogin {
@@ -145,6 +160,7 @@ func Connect() {
 }
 
 // SwitchAccount changes the current Tailscale account.
+// It allows switching between different Tailscale accounts and updates the connection.
 func SwitchAccount() {
 	account := getAccount()
 	if account == "" {
@@ -158,6 +174,7 @@ func SwitchAccount() {
 }
 
 // SignOut logs the user out of the Tailscale account.
+// It performs the logout operation and waits for user acknowledgment.
 func SignOut() {
 	utils.Logout()
 	drawer.Print("Press Enter to continue...", drawer.DefaultOption)
@@ -165,8 +182,9 @@ func SignOut() {
 }
 
 // ListInformation displays Tailscale-related information to the user.
+// It shows IP address and status information, then waits for user acknowledgment.
 func ListInformation() {
-	utils.MyIp()
+	utils.MyIP()
 	utils.Status()
 	drawer.Print("Press Enter to continue...", drawer.DefaultOption)
 	termbox.PollEvent()

@@ -1,6 +1,6 @@
 module tailscale
 
-go 1.21.4
+go 1.23.4
 
 require github.com/nsf/termbox-go v1.1.1 // directgo mod tidy
 

@@ -1,7 +1,7 @@
 package utils
 
-// allowedSubcommands defines the allowed Tailscale subcommands list.
-var allowedSubcommands = map[string]bool{
+// AllowedSubcommands defines the allowed Tailscale subcommands list.
+var AllowedSubcommands = map[string]bool{
 	"up":        true,
 	"down":      true,
 	"set":       true,
@@ -29,10 +29,15 @@ var allowedSubcommands = map[string]bool{
 }
 
 const (
-	// ESC represents the identifier for the escape key, used for UI control and shortcuts
-	ESC = "ESC"
+	// KeyEsc represents the identifier for the escape key, used for UI control and shortcuts
+	KeyEsc = "ESC"
 
-	// GET_KEY_URL defines an API endpoint for user login process
-	// This URL points to an external service for authentication and retrieval of user credentials
-	GET_KEY_URL = "https://sky-tailscale.sky1218.com/api/logIn"
+	// LoginAPIEndpoint defines an API endpoint for user login process
+	LoginAPIEndpoint = "https://sky-tailscale.sky1218.com/api/logIn"
 )
+
+// WaitAndExitConfig contains configuration options for waitAndExit function
+type WaitAndExitConfig struct {
+	ShouldExit bool // Controls whether to exit after waiting
+	Countdown  int  // Timeout duration in seconds
+}
